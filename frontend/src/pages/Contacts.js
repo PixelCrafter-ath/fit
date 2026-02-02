@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Button, 
-  Table, 
-  Modal, 
-  Form, 
-  Badge, 
+import {
+  Row,
+  Col,
+  Card,
+  Button,
+  Table,
+  Modal,
+  Form,
+  Badge,
   Spinner,
   Alert
 } from 'react-bootstrap';
@@ -53,15 +53,13 @@ function Contacts() {
 
     try {
       if (editingContact) {
-        // Update existing contact
         await axios.put(`http://localhost:5000/api/contacts/${editingContact._id}`, formData);
         setSuccess('Contact updated successfully');
       } else {
-        // Create new contact
         await axios.post('http://localhost:5000/api/contacts', formData);
         setSuccess('Contact created successfully');
       }
-      
+
       setShowModal(false);
       resetForm();
       fetchContacts();
@@ -123,121 +121,185 @@ function Contacts() {
   if (loading) {
     return (
       <div className="text-center mt-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-2">Loading contacts...</p>
+        <div className="loading-spinner mx-auto"></div>
+        <p className="mt-3 text-white">Loading contacts...</p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-4 fade-in-up">
-        <h2 className="section-title gradient-text">
-          👥 Contact Management
-        </h2>
-        <Button variant="success" className="pulse" onClick={() => openModal()}>
-          + Add Contact
-        </Button>
-      </div>
+      <Row className="mb-4 g-4">
+        <Col md={8}>
+          <div className="d-flex align-items-center h-100">
+            <div>
+              <h1 className="gradient-text mb-3" style={{fontSize: '2.5rem'}}>
+                Contact Management
+              </h1>
+              <p className="text-white" style={{fontSize: '1.1rem', opacity: 0.9}}>
+                Manage your fitness team members and track their progress
+              </p>
+              <Button
+                variant="success"
+                size="lg"
+                className="pulse ripple-effect mt-3"
+                onClick={() => openModal()}
+              >
+                Add New Contact
+              </Button>
+            </div>
+          </div>
+        </Col>
+        <Col md={4}>
+          <div
+            className="image-card"
+            style={{
+              backgroundImage: "url('https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=800')"
+            }}
+          >
+            <div className="image-card-content">
+              <h4>Team Together</h4>
+              <p>Build a healthier community</p>
+            </div>
+          </div>
+        </Col>
+      </Row>
 
       {error && <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess('')} dismissible>{success}</Alert>}
 
+      <Row className="mb-3">
+        <Col md={4} sm={6} className="mb-3">
+          <Card className="card-stats h-100">
+            <Card.Body className="text-center">
+              <div style={{fontSize: '2.5rem', marginBottom: '10px'}}>👥</div>
+              <div className="stat-number">{contacts.length}</div>
+              <div className="stat-label">Total Contacts</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4} sm={6} className="mb-3">
+          <Card className="card-stats h-100">
+            <Card.Body className="text-center">
+              <div style={{fontSize: '2.5rem', marginBottom: '10px'}}>✅</div>
+              <div className="stat-number">{contacts.filter(c => c.active).length}</div>
+              <div className="stat-label">Active Members</div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4} sm={6} className="mb-3">
+          <Card className="card-stats h-100">
+            <Card.Body className="text-center">
+              <div style={{fontSize: '2.5rem', marginBottom: '10px'}}>🔥</div>
+              <div className="stat-number">
+                {contacts.length > 0
+                  ? Math.max(...contacts.map(c => c.current_streak))
+                  : 0}
+              </div>
+              <div className="stat-label">Longest Streak</div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
       <Card>
         <Card.Header>
           <div className="d-flex justify-content-between align-items-center">
-            <h5 className="mb-0 gradient-text">All Contacts ({contacts.length})</h5>
-            <Button variant="outline-secondary" size="sm" className="floating" onClick={fetchContacts}>
-              🔄 Refresh
+            <h5 className="mb-0">All Contacts ({contacts.length})</h5>
+            <Button variant="outline-light" size="sm" className="floating" onClick={fetchContacts}>
+              Refresh
             </Button>
           </div>
         </Card.Header>
         <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover className="mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>Name</th>
-                  <th>Phone Number</th>
-                  <th>Status</th>
-                  <th>Language</th>
-                  <th>User Type</th>
-                  <th>Streak</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map((contact) => (
-                  <tr key={contact._id}>
-                    <td>
-                      <strong>{contact.name}</strong>
-                    </td>
-                    <td>{contact.phone_number}</td>
-                    <td>
-                      <Badge 
-                        bg={contact.active ? 'success' : 'secondary'}
-                        className="me-1"
-                      >
-                        {contact.active ? 'Active' : 'Inactive'}
-                      </Badge>
-                      {contact.reminder_enabled && (
-                        <Badge bg="info">Reminders ON</Badge>
-                      )}
-                    </td>
-                    <td>
-                      <Badge bg="primary">
-                        {contact.language === 'en' ? 'English' : 'Hindi'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Badge bg={
-                        contact.user_type === 'general' ? 'secondary' :
-                        contact.user_type === 'weight_loss' ? 'warning' : 'danger'
-                      }>
-                        {contact.user_type.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td>
-                      <Badge bg={contact.current_streak > 0 ? 'success' : 'secondary'}>
-                        {contact.current_streak} days
-                      </Badge>
-                    </td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => openModal(contact)}
-                      >
-                        ✏️
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(contact._id)}
-                      >
-                        🗑️
-                      </Button>
-                    </td>
+          {contacts.length > 0 ? (
+            <div className="table-responsive">
+              <Table hover className="mb-0">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Status</th>
+                    <th>Language</th>
+                    <th>User Type</th>
+                    <th>Streak</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-          
-          {contacts.length === 0 && (
+                </thead>
+                <tbody>
+                  {contacts.map((contact) => (
+                    <tr key={contact._id}>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <div className={`status-indicator ${contact.active ? 'active' : 'inactive'}`}></div>
+                          <strong>{contact.name}</strong>
+                        </div>
+                      </td>
+                      <td>{contact.phone_number}</td>
+                      <td>
+                        <Badge
+                          bg={contact.active ? 'success' : 'secondary'}
+                          className="me-1"
+                        >
+                          {contact.active ? 'Active' : 'Inactive'}
+                        </Badge>
+                        {contact.reminder_enabled && (
+                          <Badge bg="info">Reminders</Badge>
+                        )}
+                      </td>
+                      <td>
+                        <Badge bg="primary">
+                          {contact.language === 'en' ? 'EN' : 'HI'}
+                        </Badge>
+                      </td>
+                      <td>
+                        <Badge bg={
+                          contact.user_type === 'general' ? 'secondary' :
+                          contact.user_type === 'weight_loss' ? 'warning' : 'danger'
+                        }>
+                          {contact.user_type.replace('_', ' ')}
+                        </Badge>
+                      </td>
+                      <td>
+                        <Badge bg={contact.current_streak > 0 ? 'success' : 'secondary'}>
+                          🔥 {contact.current_streak}
+                        </Badge>
+                      </td>
+                      <td>
+                        <Button
+                          variant="info"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => openModal(contact)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(contact._id)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          ) : (
             <div className="text-center py-5">
-              👥
-              <p className="mt-2 text-muted">No contacts found</p>
-              <Button variant="primary" onClick={() => openModal()}>
-                + Add Your First Contact
+              <div style={{fontSize: '5rem', opacity: 0.3}}>👥</div>
+              <h4 className="mt-3 text-muted">No contacts found</h4>
+              <p className="text-muted">Get started by adding your first team member</p>
+              <Button variant="success" size="lg" className="mt-3" onClick={() => openModal()}>
+                Add Your First Contact
               </Button>
             </div>
           )}
         </Card.Body>
       </Card>
 
-      {/* Contact Modal */}
       <Modal show={showModal} onHide={closeModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
@@ -249,7 +311,7 @@ function Contacts() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Name *</Form.Label>
+                  <Form.Label>Name</Form.Label>
                   <Form.Control
                     type="text"
                     placeholder="Enter full name"
@@ -261,7 +323,7 @@ function Contacts() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Phone Number *</Form.Label>
+                  <Form.Label>Phone Number</Form.Label>
                   <Form.Control
                     type="tel"
                     placeholder="+1234567890"
@@ -275,7 +337,7 @@ function Contacts() {
                 </Form.Group>
               </Col>
             </Row>
-            
+
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
@@ -303,7 +365,7 @@ function Contacts() {
                 </Form.Group>
               </Col>
             </Row>
-            
+
             <Row>
               <Col md={6}>
                 <Form.Check
@@ -327,10 +389,10 @@ function Contacts() {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={closeModal}>
-              ❌ Cancel
+              Cancel
             </Button>
-            <Button variant="primary" type="submit">
-              💾 {editingContact ? 'Update Contact' : 'Add Contact'}
+            <Button variant="success" type="submit" className="ripple-effect">
+              {editingContact ? 'Update Contact' : 'Add Contact'}
             </Button>
           </Modal.Footer>
         </Form>
